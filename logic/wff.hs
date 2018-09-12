@@ -27,4 +27,3 @@ wff43 p q r = (q → r) → ((p ∨ q) → (p ∨ r))
 wff44 p q r = (q → r) → ((p → q) → (p → r))
 wff45 p q r = (p → q) → (((¬) q) → ((¬) p))
 wff46 p q r = (p ∧ q) → (p ∨ q)
-
