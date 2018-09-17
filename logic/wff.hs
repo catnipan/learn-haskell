@@ -19,7 +19,37 @@ _ ∧ _ = False
 False ∨ False = False
 _ ∨ _ = True
 
-wff31 p, q = (¬) (p ∨ q)
+
+tf = [True, False]
+
+testPQ :: (Bool -> Bool -> Bool) -> [(Bool, String, String)]
+testPQ wff = [(wff p q, "P:" ++ show p, "Q:" ++ show q) | p <- tf, q <- tf]
+
+testPQR :: (Bool -> Bool -> Bool -> Bool) -> [(Bool, String, String, String)]
+testPQR wff = [(wff p q r, "P:" ++ show p, "Q:" ++ show q, "R:" ++ show r) | p <- tf, q <- tf, r <- tf]
+
+isWffEqualPQ :: (Bool -> Bool -> Bool) -> (Bool -> Bool -> Bool) -> Bool
+isWffEqualPQ wff1 wff2 =
+    let isEqualUnderPQ p q = (wff1 p q == wff2 p q)
+        accFunc acc x = if x then acc else False
+    in foldl accFunc True [isEqualUnderPQ p q | p <- tf, q <- tf]
+
+wff311 p q = (¬) (p ∨ q)
+wff312 p q = ((¬) p) ∧ ((¬) q)
+wff313 p q = (¬)(p ∧ q)
+
+wff321 p q = (((¬) p) ∨ q) ∧ (p ∨ ((¬) q))
+wff322 p q = (p ∧ q) ∨ (((¬)p) ∧ ((¬)q))
+
+wff33 p q = (p → q) ∧ ((¬)(p ↔ q))
+
+wff341 p q = p → q
+wff342 p q = ((¬)q) → ((¬)p)
+wff343 p q = ((¬)p) → ((¬)q)
+wff344 p q = q → p
+
+wff351 p q r = p → (q → r)
+wff352 p q r = (p ∧ q) → r
 
 wff41 p = p → p
 wff42 p q = (¬) ((p ∨ q) → (q ∨ p))
