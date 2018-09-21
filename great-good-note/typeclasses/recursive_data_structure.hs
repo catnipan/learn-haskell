@@ -1,3 +1,5 @@
+import qualified Data.Map as Map
+
 -- data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)
 -- List 是一个类型构造子
 -- List a 是一个具体类型
