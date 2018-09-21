@@ -1,3 +1,15 @@
+module Logic (
+  (¬),
+  (→),
+  (↔),
+  (∧),
+  (∨),
+  tf,
+  testPQ,
+  testPQR,
+  isWffEqualPQ,
+) where
+
 (¬) :: Bool -> Bool
 (¬) True = False
 (¬) False = True
@@ -19,7 +31,6 @@ _ ∧ _ = False
 False ∨ False = False
 _ ∨ _ = True
 
-
 tf = [True, False]
 
 testPQ :: (Bool -> Bool -> Bool) -> [(Bool, String, String)]
@@ -32,6 +43,7 @@ isWffEqualPQ :: (Bool -> Bool -> Bool) -> (Bool -> Bool -> Bool) -> Bool
 isWffEqualPQ wff1 wff2 =
     let isEqualUnderPQ p q = (wff1 p q == wff2 p q)
         accFunc acc x = if x then acc else False
+<<<<<<< HEAD:logic/wff.hs
     in foldl accFunc True [isEqualUnderPQ p q | p <- tf, q <- tf]
 
 wff311 p q = (¬) (p ∨ q)
@@ -65,3 +77,6 @@ wffx2113 p q = p
 wffx2212l p q r = (p ∨ q) ∨ r
 wffx2212r p q r = p ∨ (q ∨ r)
 
+=======
+    in foldl accFunc True [isEqualUnderPQ p q | p <- tf, q <- tf]
+>>>>>>> 12499ec691390270621422f8d81e175721c0b0d7:logic/Logic.hs
