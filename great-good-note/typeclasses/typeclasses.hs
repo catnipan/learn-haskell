@@ -39,3 +39,29 @@ instance Show TrafficLight where
 --   read "R" = Red
 --   read "Y" = Yellow
 --   read "G" = Green
+
+-- 对于有 parameter 的 type 而言，如 Maybe a
+-- instance (Eq m) => Eq (Maybe m) where
+  --   Just x == Just y = x == y
+  --   Nothing == Nothing = True
+  --   _ == _ = False
+-- 我们要求 Maybe 的 type parameter m 属于 Eq typeclass
+-- 这样才能让 Maybe m 也属于 Eq typeclass
+
+-- 在 ghci 中查看一个 typeclass 有哪些 instance
+-- :info Num
+-- class Num a where
+--   (+) :: a -> a -> a
+--   (-) :: a -> a -> a
+--   (*) :: a -> a -> a
+--   negate :: a -> a
+--   abs :: a -> a
+--   signum :: a -> a
+--   fromInteger :: Integer -> a
+--   {-# MINIMAL (+), (*), abs, signum, fromInteger, (negate | (-)) #-}
+--         -- Defined in ‘GHC.Num’
+-- instance Num Word -- Defined in ‘GHC.Num’
+-- instance Num Integer -- Defined in ‘GHC.Num’
+-- instance Num Int -- Defined in ‘GHC.Num’
+-- instance Num Float -- Defined in ‘GHC.Float’
+-- instance Num Double -- Defined in ‘GHC.Float’
