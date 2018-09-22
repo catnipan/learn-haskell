@@ -1,6 +1,8 @@
 import Control.Monad
 import Data.Char
 import System.IO
+import System.Directory
+import Data.List
 
 -- ghc --make capslocker
 
@@ -100,3 +102,30 @@ main10 filePath = do
 -- LineBuffering 一次读一行
 -- BlockBuffering (Just ___) 自定义
 -- BlockBuffering Nothing 操作系统自动决定
+
+-- hFlush :: Handle -> IO ()
+
+main11 = do
+  handle <- openFile "todo.txt" ReadMode
+  (tempName, tempHandle) <- openTempFile "." "temp"
+  contents <- hGetContents handle
+  let todoTasks = lines contents
+      numberedTasks = zipWith (\n line -> show n ++ " - " ++ line) [0..] todoTasks
+  putStrLn "These are your TO-DO items:"
+  -- putStr $ unlines numberedTasks
+  -- 等价于
+  mapM putStrLn numberedTasks
+  putStrLn "Which one do you want to delete?"
+  numberString <- getLine
+  let number = read numberString :: Int
+      newTodoItems = delete (todoTasks !! number) todoTasks
+  hPutStr tempHandle $ unlines newTodoItems
+  hClose handle
+  hClose tempHandle
+  removeFile "todo.txt"
+  renameFile tempName "todo.txt"
+
+-- openTempFile :: FilePath -> String -> IO (FilePath, Handle)
+-- 用 "." 作为临时文件夹，即当前文件夹
+-- "temp" 作为临时文件的模版名，文件名会加上一个随机字符串
+-- 
