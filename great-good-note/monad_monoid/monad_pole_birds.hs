@@ -55,3 +55,15 @@ banana _ = Nothing
 -- Nothing
 -- Just 3 >> Just 4
 -- Just 4
+
+-- 使用 do notation
+routine :: Maybe Pole
+routine = do
+  start <- return (0,0)
+  first <- landLeft' 2 start
+  -- Nothing -- 丢出香蕉皮
+  -- 没有用 <- 来绑定值，相当于 >> 函数
+  -- _ <- Nothing
+  second <- landRight' 2 first
+  -- second <- Just (0,0) -- shadow second 变量为 (0,0)
+  landLeft' 1 second
