@@ -4,10 +4,12 @@ import Data.Monoid
 -- 检验是不是一样
 data SameOrDifferent = Different | Same deriving (Show)
 
+instance Semigroup SameOrDifferent where
+  Different <> _ = Different
+  Same <> y = y
+
 instance Monoid SameOrDifferent where
   mempty = Same
-  Different `mappend` _ = Different
-  Same `mappend` y = y
 
 checkIsEqual :: (Eq a) => a -> a -> SameOrDifferent
 checkIsEqual x y = if x == y then Same else Different
@@ -24,11 +26,13 @@ isTupleEqual (x1, y1, z1) (x2, y2, z2) = mconcat
 
 data FieldError = NoError | FieldError { getError :: String } deriving (Show)
 
+instance Semigroup FieldError where
+  FieldError errors <> _ = FieldError errors
+  x <> NoError = x
+  NoError <> x = x
+
 instance Monoid FieldError where
   mempty = NoError
-  FieldError errors `mappend` _ = FieldError errors
-  x `mappend` NoError = x
-  NoError `mappend` x = x
 
 type ErrorCheckFunc = String -> FieldError
 
