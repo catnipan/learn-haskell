@@ -47,12 +47,12 @@ Maybe.prototype.ap = function (otherMaybeVal) {
   return otherMaybeVal.map(this.__value)
 }
 
-const liftA2 = curry((fn, m1, m2) => m1.map(fn).ap(m2));
-const map = curry((fn, m) => m.map(fn))
-const ap = curry((mf, m) => mf.ap(m))
-const flatMap = curry((fn, m) => m.flatMap(fn))
+// const liftA2 = curry((fn, m1, m2) => m1.map(fn).ap(m2));
+// const map = curry((fn, m) => m.map(fn))
+// const ap = curry((mf, m) => mf.ap(m))
+// const flatMap = curry((fn, m) => m.flatMap(fn))
 
-const add = curry((a,b) => a + b)
+const add = a => b => a + b
 
 print(Just(x => x + 1).ap(Just(3)))
 print(Nothing.ap(Just(3)))
