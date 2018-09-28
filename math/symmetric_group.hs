@@ -1,13 +1,43 @@
 import Data.List
 
-type Permutation = [Int]
-type PForm = [Int]
+type PermuGroup = [Int]
+type SearchList = [(Int, Int)]
 
--- getPFormOnNLetters :: Int -> [PForm]
--- getPFormOnNLetters n = map calcPermutationForm $ permutations [1..n]
---   where
-calcPermutationForm :: Permutation -> Permutation -> PForm
-calcPermutationForm pl1 pl2 = filter (\(p1,p2) -> p1 /= p2) . zip $ pl1 pl2
--- pl1 = [1,2,3,4]
--- pl2 = [2,3,1,4]
--- res = [2,3,1]
+newtype PermuItem = PermuItem { getPermuItem :: [PermuGroup] }
+
+showPermuGroup :: PermuGroup -> String
+showPermuGroup (_:[]) = ""
+showPermuGroup groups = "(" ++ (mconcat . intersperse "," . map show $ groups) ++ ")"
+
+instance Show PermuItem where
+  show (PermuItem permuGroups) =
+    let str = mconcat . map showPermuGroup $ permuGroups
+    in if str == "" then "(1)" else str
+
+startPermuOn :: Int -> SearchList -> (PermuGroup, SearchList)
+startPermuOn firstStart searchList = (permuGroup', searchList')
+  where 
+    calcOnStart :: Int -> PermuGroup -> PermuGroup
+    calcOnStart start permuGroup = case lookup start searchList of
+      Nothing -> permuGroup
+      Just thenStart ->
+        if thenStart == firstStart
+          then permuGroup
+          else calcOnStart thenStart (thenStart:permuGroup)
+    searchList' = filter (not . (`elem` permuGroup') . fst) searchList
+    permuGroup' = reverse $ calcOnStart firstStart [firstStart]
+
+searchListToPermuGroupList :: SearchList -> PermuItem
+searchListToPermuGroupList startSearchList = iterator startSearchList $ PermuItem []
+  where
+    iterator :: SearchList -> PermuItem -> PermuItem
+    iterator searchList@((start,_):_) (PermuItem permuItem) =
+      let (newPermuGroup, newSearchList) = startPermuOn start searchList
+      in iterator newSearchList (PermuItem (newPermuGroup:permuItem))
+    iterator _ permuItem = permuItem
+
+symmetricGroupN :: Int -> [PermuItem]
+symmetricGroupN n = map getPermuItemOnPermutation $ permutations [1..n]
+  where
+    getPermuItemOnPermutation :: [Int] -> PermuItem
+    getPermuItemOnPermutation permu = searchListToPermuGroupList $ zip [1..n] permu
