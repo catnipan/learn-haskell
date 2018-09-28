@@ -1,4 +1,3 @@
-const { curry, pipe } = require('ramda');
 const { print } = require('./util');
 
 function Maybe(val) {
