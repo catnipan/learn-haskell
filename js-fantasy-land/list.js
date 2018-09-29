@@ -39,6 +39,12 @@ const List = (...list) => ListC.new(list);
 
 // flatMap(f => [f(1), f(2)])
 
+ListC.prototype.filterM = function (filter) {
+  // undefined
+}
+
+// List(1,2,3,4).filterM(x => List(True,False))
+
 const add = x => y => x + y;
 const mult = x => y => x * y;
 
@@ -60,20 +66,3 @@ pipe(
   flatMap(y => List(y, y * 2)),
   print,
 )(List(1,2,3,4,5))
-
-const makeTuple = x => y => z => [x,y,z]
-// print(List(makeTuple).ap(List(1,2,3)).ap(List(9,4,2)).ap(List(8,9,1,0)))
-
-// pipe(
-//   ap(List(1,2,3)),
-//   ap(List(9,4,2)),
-//   ap(List(8,9,1,0)),
-//   print,
-// )(List(makeTuple))
-
-// print(ap(List(9,4,2))(ap(List(1,2,3))(List(x => y => List(x,y)))))
-
-// print(flatMap(x => List(x,x+1))(List(1,3,4,6)))
-
-// print(List(1,2,3).map(x => x + 1))
-// print(List(1,2,3,4).map(x => x + 1).flatMap(x => [x,x]))
