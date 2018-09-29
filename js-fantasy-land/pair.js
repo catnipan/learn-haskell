@@ -1,14 +1,24 @@
 const { print } = require('./util')
 
-function PairC(a,b) {
-  this.__a = a
-  this.__b = b
+function PairC(fst,snd) {
+  this.__fst = fst
+  this.__snd = snd
 }
 
-const Pair = (a,b) => new PairC(a,b)
+const Pair = (fst,snd) => new PairC(fst,snd)
 
 PairC.prototype.toString = function () {
-  return "( " + this.__a + ", " + this.__b + " )"
+  return "( " + this.__fst + ", " + this.__snd + " )"
 }
 
-print(Pair(5,6))
+PairC.prototype.fst = function () {
+  return this.__fst
+}
+
+PairC.prototype.snd = function () {
+  return this.__snd
+}
+
+module.exports = Pair
+
+// print(Pair(5,6))

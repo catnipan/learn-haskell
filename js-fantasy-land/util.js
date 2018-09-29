@@ -1,6 +1,6 @@
 const print = val => console.log(val && val.toString())
 
-const first = ls => ls[0]
+const head = ls => ls[0]
 const tail = ls => {
   const [x,...xs] = ls;
   return xs
@@ -36,4 +36,6 @@ module.exports = {
   flatMap,
   ap,
   identity: x => x,
+  head,
+  tail,
 }
