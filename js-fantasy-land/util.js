@@ -35,4 +35,5 @@ module.exports = {
   map,
   flatMap,
   ap,
+  identity: x => x,
 }
