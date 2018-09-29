@@ -1,7 +1,5 @@
 const print = val => console.log(val && val.toString())
 
-const __ = Symbol();
-
 const first = ls => ls[0]
 const tail = ls => {
   const [x,...xs] = ls;
@@ -22,32 +20,19 @@ const zipWith = fn => lx => ly => {
 
 const zip = zipWith((x,y) => [x,y])
 
-const _mergeArgs = (oldArgs, newArgs) => {
-  const resArgs = Array(oldArgs.length);
-  for (let oi = 0, ni = 0, mi = 0; mi < resArgs.length; mi += 1) {
-    if (oldArgs[oi] === __) {
-      resArgs[mi] = newArgs[ni] || __
-      ni += 1
-      oi += 1
-    } else {
-      resArgs[mi] = oldArgs[oi]
-      oi += 1
-    }
-  }
-  return resArgs
-}
+const composeTwoFunc = (f, g) => (...args) => f(g(...args))
+const compose = (...funcs) => funcs.reduce(composeTwoFunc)
+const pipe = (...funcs) => funcs.reduceRight(composeTwoFunc)
 
-const _curry = (func, oldArgs) => (...newArgs) => {
-  const resArgs = _mergeArgs(oldArgs, newArgs)
-  if (resArgs.every(arg => arg !== __)) {
-    return func(...resArgs)
-  }
-  return _curry(func, resArgs)
-}
-
-const curry = func => _curry(func, Array(func.length).fill(__))
+const map = fn => functor => functor.map(fn)
+const ap = mFunctor => sFunctor => sFunctor.ap(mFunctor)
+const flatMap = fn => monad => monad.flatMap(fn)
 
 module.exports = {
   print,
-  curry,
+  compose,
+  pipe,
+  map,
+  flatMap,
+  ap,
 }

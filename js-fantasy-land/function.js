@@ -16,4 +16,8 @@ FuncC.prototype.map = function (g) {
   return Func(x => g.__func__(this.__func__(x)))
 }
 
+// FuncC.prototype.ap = function (g) {
+
+// }
+
 print(Func(x => x + 1).map(Func(x => x * 3)).__func__(4))
