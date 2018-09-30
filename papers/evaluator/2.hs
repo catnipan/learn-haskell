@@ -7,23 +7,31 @@ error1 = (Div (Con 1) (Con 0))
 -- variation two, revisited: State
 type M a = State -> (a, State)
 type State = Int
+
 unit :: a -> M a
-unit a = \x -> (a,x) -- λx.(a,x)
-(✻) :: M a -> (a -> M b) -> (M b)
-m ✻ k = \x -> let (a,y) = mx in
+unit a = \s -> (a,s) -- λs.(a,s)
+(•) :: M a -> (a -> M b) -> M b
+m • k = \s -> let (a,y) = m s in
               let (b,z) = k a y in
               (b,z)
 tick :: M ()
-tick = \x -> ((), x + 1)
+tick = \s -> ((), s+1)
 
--- as ✻ in the identity monad is function application, ✻ in the exception monad may be considered as a form of strict function application.
+-- In an impure language
+-- an operation like tick would be represented by a function of type () → ().
+
+-- add execution counts to the monadic evaluator
+-- just replace unit (a `quot` b) as
+-- tick * λ().unit(a `quot` s)
 
 eval :: Term -> M Int
-eval (Con a) = Return a
-eval (Div t u) = (eval t) ✻ (\vt ->
-  ((eval u) ✻ (\vu ->
-    (if vu == 0
-      then raise "divided by zero"
-      else unit $ vt `quot` vu
-    )
-  )))
+eval (Con a) = unit a
+eval (Div t u) = (eval t) • (\vt ->
+    (eval u) • (\vu -> 
+      tick • (\() -> unit (vt `quot` vu))
+      )
+  )
+
+-- let (a,y) = eval t x in
+-- let (b,z) = eval u y in
+--   (a `quot` b, z + 1)
