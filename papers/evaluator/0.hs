@@ -38,6 +38,14 @@ eval2 (Div t u) x =
   let (b,z) = eval2 u y in
     (a `quot` b, z + 1)
 
+-- 通过
+-- eval2 answer1 0
+-- 来计算
+-- eval2 answer1 :: M2 Int
+-- 类型为 State -> (Int, State)
+-- 提供一个初始 State 0，
+-- 计算就得到 (计算结果，最终State)
+
 -- variation 3: Output
 -- display a trace of execution
 
