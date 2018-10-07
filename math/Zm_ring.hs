@@ -68,3 +68,22 @@ printTianGanDizhi = putStrLn . intercalate " " . map tgdzPairToString . take 60 
     showDiZhi zm@(Zm 12 i) = dizhi !! (getValInZm zm)
       where dizhi = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"]
     showDiZhi _ = undefined
+
+
+-- 今有物不知其数,三三数之剩二;五五数之剩三,七七数之剩二;问物几何?
+type Mod = Int
+type Remainder = Int
+-- calcNumFromModRemainder [(3,2),(5,3),(7,2)] = 23
+-- in which Mod is prime with each other
+-- and 0 <= remainder < mod
+
+calcNumFromModRemainder :: [(Mod, Remainder)] -> Int
+calcNumFromModRemainder ((fstMod, fstReminader):mrs) =
+  calcNum mrs fstMod fstReminader
+  where
+    calcNum :: [(Mod, Remainder)] -> Int -> Int -> Int
+    calcNum [] _ currNum = currNum
+    calcNum ((newMod, newRemainder):xs) currGap currNum =
+      let newNum = head $ dropWhile ((/=newRemainder) . (`mod` newMod)) $ iterate (+currGap) currNum
+          newGap = currGap * newMod
+      in calcNum xs newGap newNum
