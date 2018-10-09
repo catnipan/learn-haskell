@@ -1,3 +1,5 @@
+-- https://engineering.dollarshaveclub.com/the-reader-monad-example-motivation-542c54ccfaa8
+
 import Html
 import Prelude hiding (div)
 
