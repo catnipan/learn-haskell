@@ -12,7 +12,7 @@ type DigitList = [Int]
 
 zipDigitList :: DigitList -> DigitList -> [(Int, Int)]
 zipDigitList (x:xs) (y:ys) = (x,y):(zipDigitList xs ys)
-zipDigitList [] [] = [] -- maybe carry at last, leave position ahead
+zipDigitList [] [] = []
 zipDigitList [] yys = zipDigitList [0] yys
 zipDigitList xxs [] = zipDigitList xxs [0]
 
