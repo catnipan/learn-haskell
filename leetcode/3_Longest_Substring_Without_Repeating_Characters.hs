@@ -17,17 +17,11 @@
 -- Explanation: The answer is "wke", with the length of 3. 
 --              Note that the answer must be a substring, "pwke" is a subsequence and not a substring.
 
-import Data.List (inits, sort, group)
+import Data.List (break)
 import qualified Data.Set as Set
 
 -- use list as a FIFO queue
-enqueue :: a -> [a] -> [a]
-enqueue q queue = queue ++ [q]
-dequeue :: [a] -> (a,[a])
-dequeue (q:queue) = (q,queue)
-
 type StringQueue = String
-
 type Length = Int
 
 lengthOfLongestSubstring :: String -> Length
@@ -37,21 +31,14 @@ lengthOfLongestSubstring = calc [] Set.empty 0 0
     calc _ _ _ maxLen [] = maxLen
     calc strQueue charSet currLen maxLen (currChar:pendingStr) =
       if currChar `Set.member` charSet
-        then let (outChars, newStrQueue) = dequeueUntilNoMember currChar [] afterEnqueueStringQueue
-                 newCharSet = foldr (\outc cset -> Set.delete outc cset) charSet outChars
-                 newCurrLen = currLen - length outChars
-             in calc newStrQueue newCharSet newCurrLen maxLen pendingStr
-        else let newStrQueue = afterEnqueueStringQueue
-                 newCharSet = Set.insert currChar charSet
+        then let (outChars, (_:newStrQueue')) = break (== currChar) newStrQueue
+                 outChars' = currChar:outChars
+                 newCharSet = foldr (\outc cset -> Set.delete outc cset) charSet outChars'
+                 newCurrLen = currLen - length outChars'
+             in calc newStrQueue' newCharSet newCurrLen maxLen pendingStr
+        else let newCharSet = Set.insert currChar charSet
                  newCurrLen = currLen + 1
              in calc newStrQueue newCharSet newCurrLen (max newCurrLen maxLen) pendingStr
       where
-        afterEnqueueStringQueue :: StringQueue
-        afterEnqueueStringQueue = enqueue currChar strQueue
-        dequeueUntilNoMember :: Char -> [Char] -> StringQueue -> ([Char], StringQueue)
-        dequeueUntilNoMember char outChars strQueue =
-          let (newDqChar, newStrQueue) = dequeue strQueue
-              newOutChars = char:outChars
-          in if newDqChar == char
-              then (newOutChars, newStrQueue)
-              else dequeueUntilNoMember char newOutChars newStrQueue
+        newStrQueue :: StringQueue
+        newStrQueue = strQueue ++ [currChar] 
