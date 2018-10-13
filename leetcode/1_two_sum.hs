@@ -16,8 +16,12 @@ toPair [] = []
 toPair (x:xs) = [(x,m) | m <- xs] ++ (toPair xs)
 
 twoSum :: [Int] -> Int -> Maybe (Indice, Indice)
-twoSum xs target = getIndice . take 1 . filter isRightPair . toPair $ xis
-  where xis = zip [0..] xs
-        isRightPair ((_,m),(_,n)) = m + n == target
-        getIndice [((i,_),(j,_))] = Just (i,j)
-        getIndice [] = Nothing
+twoSum xs target = getFirstIndice . filter isRightPair . toPair $ xis
+  where
+    xis = zip [0..] xs
+    isRightPair ((_,m),(_,n)) = m + n == target
+    getFirstIndice (((i,_),(j,_)):_) = Just (i,j)
+    getFirstIndice [] = Nothing
+
+-- twoSum [2, 7, 11, 15] 9
+-- Just (0,1)
