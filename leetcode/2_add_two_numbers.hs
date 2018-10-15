@@ -8,13 +8,12 @@
 -- Output: 7 -> 0 -> 8
 -- Explanation: 342 + 465 = 807.
 
+import Data.Function(on)
+
 type DigitList = [Int]
 
 zipDigitList :: DigitList -> DigitList -> [(Int, Int)]
-zipDigitList (x:xs) (y:ys) = (x,y):(zipDigitList xs ys)
-zipDigitList [] [] = []
-zipDigitList [] yys = zipDigitList [0] yys
-zipDigitList xxs [] = zipDigitList xxs [0]
+zipDigitList xs ys = take ((max `on` length) xs ys) $ zip (xs++repeat 0) (ys++repeat 0)
 
 addTwoNumbers :: DigitList -> DigitList -> DigitList
 addTwoNumbers nl ml = getResult . foldl foldFunction [0] $ zipDigitList nl ml
