@@ -26,20 +26,8 @@
 import Data.List(sortOn)
 
 type RowNum = Int
-data TraverseDirection = UP | DOWN
-type ZigZagItem = (Char, RowNum)
 
 convert :: String -> RowNum -> String
 convert str totalRowCnt =
-  let (resultZigZagList,_,_) = foldl foldFunc ([], 1, DOWN) str
-  in map fst . sortOn snd $ resultZigZagList
-  where
-    foldFunc :: ([ZigZagItem], RowNum, TraverseDirection) -> Char -> ([ZigZagItem], RowNum, TraverseDirection)
-    foldFunc (zigZagList, rowCnt, DOWN) currChar =
-      let newRowCnt = rowCnt + 1
-          newDirection = if newRowCnt == totalRowCnt then UP else DOWN
-      in (zigZagList ++ [(currChar, rowCnt)], newRowCnt, newDirection)
-    foldFunc (zigZagList, rowCnt, UP) currChar =
-      let newRowCnt = rowCnt - 1
-          newDirection = if newRowCnt == 1 then DOWN else UP
-      in (zigZagList ++ [(currChar, rowCnt)], newRowCnt, newDirection)
+  map snd . sortOn fst . zip (cycle idxList) $ str
+    where idxList = [1..totalRowCnt] ++ [totalRowCnt-1,totalRowCnt-2..2]
