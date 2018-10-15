@@ -17,11 +17,11 @@ zipDigitList [] yys = zipDigitList [0] yys
 zipDigitList xxs [] = zipDigitList xxs [0]
 
 addTwoNumbers :: DigitList -> DigitList -> DigitList
-addTwoNumbers nl ml = getResult . foldl foldFunction ([], 0) $ zipDigitList nl ml
+addTwoNumbers nl ml = getResult . foldl foldFunction [0] $ zipDigitList nl ml
   where
-    foldFunction (rs, c) (n,m) =
+    foldFunction (c:res) (n,m) =
       let sum = c + n + m
           nr = sum `mod` 10
           nc = sum `quot` 10
-      in ((nr:rs), nc)
-    getResult (rs, c) = reverse $ if c == 0 then rs else c:rs
+      in (nc:nr:res)
+    getResult res = reverse $ if head res == 0 then tail res else res
