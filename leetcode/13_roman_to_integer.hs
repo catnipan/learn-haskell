@@ -40,9 +40,11 @@
 -- Output: 1994
 -- Explanation: M = 1000, CM = 900, XC = 90 and IV = 4.
 
-data RomanInteger = I | V | X | L | C | D | M deriving (Show, Read, Eq, Ord)
+import Data.Function(on)
 
-rIToInt :: RomanInteger -> Int
+data RI = I | V | X | L | C | D | M deriving (Show, Read, Eq, Ord)
+
+rIToInt :: RI -> Int
 rIToInt I = 1
 rIToInt V = 5
 rIToInt X = 10
@@ -51,18 +53,51 @@ rIToInt C = 100
 rIToInt D = 100
 rIToInt M = 1000
 
-romanToInt :: String -> Int
-romanToInt str = fst $ foldr foldFunc (0, Nothing) str
-  where
-    foldFunc :: Char -> (Int, Maybe RomanInteger) -> (Int, Maybe RomanInteger)
-    foldFunc currChar (val, maybeLastLargeRI) =
-      case maybeLastLargeRI of
-        Just lastLargeRI ->
-          if (currRI, lastLargeRI) `elem` [(I,V),(I,X),(X,L),(X,C),(C,D),(C,M)]
-            then (val - currRIVal, Nothing)
-            else (val + currRIVal, Just currRI)
-        Nothing -> (val + currRIVal, Just currRI)
-      where currRI = read [currChar] :: RomanInteger
-            currRIVal = rIToInt currRI
+charToRI :: Char -> Either Error RI
+charToRI 'I' = Right I
+charToRI 'V' = Right V
+charToRI 'X' = Right X
+charToRI 'L' = Right L
+charToRI 'C' = Right C
+charToRI 'D' = Right D
+charToRI 'M' = Right M
+charToRI ch = Left ([ch] ++ " is not a Roman Integer.")
 
--- TODO: enhance robustness, invalid Char, Roman Integer syntax error
+data RIs = Single RI | Pair RI RI deriving (Eq)
+type Error = String
+
+instance Show RIs where
+  show (Single ri) = show ri
+  show (Pair ri1 ri2) = show ri1 ++ show ri2
+
+instance Ord RIs where
+  compare = compare `on` getLast
+    where getLast :: RIs -> RI
+          getLast (Single ri) = ri
+          getLast (Pair _ ri) = ri
+
+parseRomanStr :: String -> Either Error [RIs]
+parseRomanStr str = foldr foldFunc (Right []) str
+  where
+    foldFunc :: Char -> Either Error [RIs] -> Either Error [RIs]
+    foldFunc char (Left e) = (Left e)
+    foldFunc char (Right []) = (charToRI char) >>= (\ri -> return [Single ri])
+    foldFunc char (Right allRIs@(lastRI:restRIs)) = (charToRI char) >>= transForm
+      where
+        transForm ri
+          | Single ri < lastRI = case lastRI of
+              Single lRI ->
+                if (ri, lRI) `elem` [(I,V),(I,X),(X,L),(X,C),(C,D),(C,M)]
+                  then Right $ (Pair ri lRI):restRIs
+                  else Left parseError
+              Pair _ _ -> Left parseError
+          | otherwise = Right $ (Single ri):allRIs 
+          where parseError = "parse error:" ++ show ri ++ " can't be before " ++ show lastRI
+
+romanToInt :: String -> Either Error Int
+romanToInt str = do
+  ris <- parseRomanStr str
+  return $ sum $ map rIsToInt ris
+  where rIsToInt :: RIs -> Int
+        rIsToInt (Single ri) = rIToInt ri
+        rIsToInt (Pair ri1 ri2) = rIToInt ri2 - rIToInt ri1
