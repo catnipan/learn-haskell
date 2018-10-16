@@ -41,29 +41,45 @@
 --              Thefore INT_MIN (−231) is returned.
 
 import Data.Int(Int32)
-import Data.Char(isDigit)
-import qualified Data.Map as Map
 
-charDigitMap :: Map.Map Char Int32
-charDigitMap = Map.fromList [('0',0),('1',1),('2',2),('3',3),('4',4),('5',5),('6',6),('7',7),('8',8),('9',9)]
+data IntParseError = InvalidDigitChar | IntOverflow | IntUnderflow
+data Sign = Positive | Negative
+
+charToDigit :: Char -> Maybe Int32
+charToDigit '0' = Just 0
+charToDigit '1' = Just 1
+charToDigit '2' = Just 2
+charToDigit '3' = Just 3
+charToDigit '4' = Just 4
+charToDigit '5' = Just 5
+charToDigit '6' = Just 6
+charToDigit '7' = Just 7
+charToDigit '8' = Just 8
+charToDigit '9' = Just 9
+charToDigit _ = Nothing
 
 myAtoi :: String -> Int32
 myAtoi str =
-  case (makeSign <*> (Just . convertDigitStr 0 $ restStr)) of
-    (Just x) -> x
-    Nothing -> 0
+  case (convertDigitStr (Right 0) $ restStr) of
+    (Right v) -> v
+    (Left IntUnderflow) -> (minBound :: Int32)
+    (Left IntOverflow) -> (maxBound :: Int32)
+    _ -> 0
   where
-    (makeSign, restStr) = handleSign . dropWhile (==' ') $ str
-    convertDigitStr :: Int32 -> String -> Int32
-    convertDigitStr i [] = i
-    convertDigitStr i (char:rsChars) =
-      case Map.lookup char charDigitMap of
-        (Just ni) -> let nv = (i * 10 + ni)
-                      in convertDigitStr (if nv < 0 then 0 else nv) rsChars
-        Nothing -> i
-    handleSign :: String -> (Maybe (Int32 -> Int32), String)
-    handleSign str = 
-      case head str of
-        '+' -> (Just id, tail str)
-        '-' -> (Just negate, tail str)
-        s -> (if isDigit s then Just id else Nothing, str)
+    convertDigitStr :: Either IntParseError Int32 -> String -> Either IntParseError Int32 
+    convertDigitStr v [] = v
+    convertDigitStr (Left e) _ = (Left e)
+    convertDigitStr (Right v) (char:rsChars) =
+      case charToDigit char of
+        Just nv -> convertDigitStr (testIntFlow $ v * 10 + makeSign nv) rsChars
+        Nothing -> (Right v) -- right invalid char ignored
+    testIntFlow :: Int32 -> Either IntParseError Int32
+    makeSign :: Int32 -> Int32
+    (testIntFlow, makeSign) = case sign of
+      Positive -> (\i -> if i < 0 then Left IntOverflow else Right i, id)
+      Negative -> (\i -> if i > 0 then Left IntUnderflow else Right i, negate)
+    (sign, restStr) = handleSign $ dropWhile (==' ') str
+    handleSign :: String -> (Sign, String)
+    handleSign ('+':ss) = (Positive, ss)
+    handleSign ('-':ss) = (Negative, ss)
+    handleSign ss = (Positive, ss)
