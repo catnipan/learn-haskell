@@ -1,6 +1,7 @@
 module RomanInteger (
   RI(..),
   rIsToInt,
+  allRIs,
   smallBigRIPair,
   RIs(..),
 ) where
@@ -12,13 +13,16 @@ data RI = I | V | X | L | C | D | M deriving (Show, Read, Eq, Ord)
 smallBigRIPair :: [(RI, RI)]
 smallBigRIPair = [(I,V),(I,X),(X,L),(X,C),(C,D),(C,M)]
 
+allRIs :: [RIs]
+allRIs = map Single [I,V,X,L,C,D,M] ++ map (\(ri1,ri2) -> Pair ri1 ri2) smallBigRIPair
+
 rIToInt :: RI -> Int
 rIToInt I = 1
 rIToInt V = 5
 rIToInt X = 10
 rIToInt L = 50
 rIToInt C = 100
-rIToInt D = 100
+rIToInt D = 500
 rIToInt M = 1000
 
 rIsToInt :: RIs -> Int
