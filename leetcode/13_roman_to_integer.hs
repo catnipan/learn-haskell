@@ -40,54 +40,32 @@
 -- Output: 1994
 -- Explanation: M = 1000, CM = 900, XC = 90 and IV = 4.
 
-import Data.Function(on)
+import RomanInteger
 
-data RI = I | V | X | L | C | D | M deriving (Show, Read, Eq, Ord)
-
-rIToInt :: RI -> Int
-rIToInt I = 1
-rIToInt V = 5
-rIToInt X = 10
-rIToInt L = 50
-rIToInt C = 100
-rIToInt D = 100
-rIToInt M = 1000
-
-charToRI :: Char -> Either Error RI
-charToRI 'I' = Right I
-charToRI 'V' = Right V
-charToRI 'X' = Right X
-charToRI 'L' = Right L
-charToRI 'C' = Right C
-charToRI 'D' = Right D
-charToRI 'M' = Right M
-charToRI ch = Left ([ch] ++ " is not a Roman Integer.")
-
-data RIs = Single RI | Pair RI RI deriving (Eq)
 type Error = String
 
-instance Show RIs where
-  show (Single ri) = show ri
-  show (Pair ri1 ri2) = show ri1 ++ show ri2
-
-instance Ord RIs where
-  compare = compare `on` getLast
-    where getLast :: RIs -> RI
-          getLast (Single ri) = ri
-          getLast (Pair _ ri) = ri
+charToRIs :: Char -> Either Error RI
+charToRIs 'I' = Right I
+charToRIs 'V' = Right V
+charToRIs 'X' = Right X
+charToRIs 'L' = Right L
+charToRIs 'C' = Right C
+charToRIs 'D' = Right D
+charToRIs 'M' = Right M
+charToRIs ch = Left ([ch] ++ " is not a Roman Integer.")
 
 parseRomanStr :: String -> Either Error [RIs]
 parseRomanStr str = foldr foldFunc (Right []) str
   where
     foldFunc :: Char -> Either Error [RIs] -> Either Error [RIs]
     foldFunc char (Left e) = (Left e)
-    foldFunc char (Right []) = (charToRI char) >>= (\ri -> return [Single ri])
-    foldFunc char (Right allRIs@(lastRI:restRIs)) = (charToRI char) >>= transForm
+    foldFunc char (Right []) = (charToRIs char) >>= (\ri -> return [Single ri])
+    foldFunc char (Right allRIs@(lastRI:restRIs)) = (charToRIs char) >>= transForm
       where
         transForm ri
-          | Single ri < lastRI = case lastRI of
+          | (Single ri) < lastRI = case lastRI of
               Single lRI ->
-                if (ri, lRI) `elem` [(I,V),(I,X),(X,L),(X,C),(C,D),(C,M)]
+                if (ri, lRI) `elem` smallBigRIPair
                   then Right $ (Pair ri lRI):restRIs
                   else Left parseError
               Pair _ _ -> Left parseError
