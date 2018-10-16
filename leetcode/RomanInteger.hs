@@ -1,6 +1,6 @@
 module RomanInteger (
   RI(..),
-  rIToInt,
+  rIsToInt,
   smallBigRIPair,
   RIs(..),
 ) where
@@ -20,6 +20,10 @@ rIToInt L = 50
 rIToInt C = 100
 rIToInt D = 100
 rIToInt M = 1000
+
+rIsToInt :: RIs -> Int
+rIsToInt (Single ri) = rIToInt ri
+rIsToInt (Pair ri1 ri2) = rIToInt ri2 - rIToInt ri1
 
 data RIs = Single RI | Pair RI RI deriving (Eq)
 

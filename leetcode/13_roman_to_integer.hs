@@ -58,24 +58,23 @@ parseRomanStr :: String -> Either Error [RIs]
 parseRomanStr str = foldr foldFunc (Right []) str
   where
     foldFunc :: Char -> Either Error [RIs] -> Either Error [RIs]
-    foldFunc char (Left e) = (Left e)
-    foldFunc char (Right []) = (charToRIs char) >>= (\ri -> return [Single ri])
-    foldFunc char (Right allRIs@(lastRI:restRIs)) = (charToRIs char) >>= transForm
-      where
-        transForm ri
-          | (Single ri) < lastRI = case lastRI of
+    foldFunc char accRIs = do
+      ri <- charToRIs char
+      ris <- accRIs
+      case ris of
+        [] -> return [Single ri]
+        allRIs@(lastRI:restRIs) -> do
+          let parseError = "parse error:" ++ show ri ++ " can't be before " ++ show lastRI
+          if (Single ri) < lastRI
+            then case lastRI of
               Single lRI ->
                 if (ri, lRI) `elem` smallBigRIPair
-                  then Right $ (Pair ri lRI):restRIs
+                  then return $ (Pair ri lRI):restRIs
                   else Left parseError
               Pair _ _ -> Left parseError
-          | otherwise = Right $ (Single ri):allRIs 
-          where parseError = "parse error:" ++ show ri ++ " can't be before " ++ show lastRI
+            else return $ (Single ri):allRIs
 
 romanToInt :: String -> Either Error Int
 romanToInt str = do
   ris <- parseRomanStr str
   return $ sum $ map rIsToInt ris
-  where rIsToInt :: RIs -> Int
-        rIsToInt (Single ri) = rIToInt ri
-        rIsToInt (Pair ri1 ri2) = rIToInt ri2 - rIToInt ri1
