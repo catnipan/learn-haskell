@@ -13,7 +13,7 @@ instance Functor (Reader a) where
 instance Applicative (Reader a) where
   pure x = Reader $ \_ -> x
   m <*> n = Reader $ \e -> (runReader m e) (runReader n e)
-  
+
 instance Monad (Reader a) where
   m >>= f = Reader $ \e -> runReader (f $ runReader m $ e) e
 
