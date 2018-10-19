@@ -1,4 +1,4 @@
-module RomanInteger (
+module MyUtils.RomanInteger (
   RI(..),
   rIsToInt,
   allRIs,

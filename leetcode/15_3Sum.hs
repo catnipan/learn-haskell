@@ -14,8 +14,8 @@
 --   [-1, -1, 2]
 -- ]
 
-import MyUtil(toUniqTriple)
 import Data.List(sort,nubBy)
+import MyUtils.ToUniqTriple(toUniqTriple)
 
 type SolutionTriple = (Int,Int,Int)
 

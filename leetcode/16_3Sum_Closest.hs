@@ -8,7 +8,7 @@
 
 import Data.Function(on)
 import Data.List(minimumBy)
-import MyUtil(toUniqTriple)
+import MyUtils.ToUniqTriple(toUniqTriple)
 
 threeSumClosest :: [Int] -> Int -> Int
 threeSumClosest nums target = minimumBy distanceToTarget . map tripleSum . toUniqTriple $ nums

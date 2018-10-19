@@ -1,4 +1,4 @@
-module MyUtil (
+module MyUtils.ToUniqTriple (
   toUniqTriple,
 ) where
 
