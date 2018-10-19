@@ -13,28 +13,27 @@
 import qualified Data.Map as Map
 import Data.Foldable(foldrM)
 
-type DigitString = String
+type Digit = Char
 type Error = String
 
 digitCharMap :: Map.Map Char [Char]
 digitCharMap = Map.fromList [('2',"abc"),('3',"def"),('4',"ghi"),('5',"jkl"),('6',"mno"),('7',"pqrs"),('8',"tuv"),('9',"wxyz")]
 
-letterCombinations :: DigitString -> [[Char]]
-letterCombinations digitsStr = foldrM foldMFunc "" dChars
+letterCombinations :: [Digit] -> Either Error [String]
+letterCombinations digitChars = foldrM foldFunc [""] digitChars
   where
-    dChars :: [[Char]]
-    dChars = do
-      d <- digitsStr
-      return $ case Map.lookup d digitCharMap of
-        Nothing -> []
-        Just ls -> ls
-    foldMFunc :: [Char] -> String -> [String]
-    foldMFunc chars str = do
-      char <- chars
-      return $ char:str
+    foldFunc :: Digit -> [String] -> Either Error [String]
+    foldFunc dgt strs =
+      case Map.lookup dgt digitCharMap of
+        Nothing -> Left $ "Parse Error: " ++ [dgt] ++ " . Digit must be 2~9"
+        Just chars -> Right $ do
+          str <- strs
+          char <- chars
+          return $ char:str
 
--- Left $ "Parse Error: " ++ [d] ++ " . Digit must be 2~9"
--- TODO: Either provide error info
--- foldM foldMFunc ["ab"] ["cd", "ef"]
--- foldM :: (b -> a -> [b]) -> b -> [a] -> [b]
--- foldM :: (String -> [Char] -> [String]) -> String -> [[Char]] -> [String]
+-- foldrM :: (Foldable t, Monad m) => (a -> b -> m b) -> b -> t a -> m b
+-- foldrM :: (Monad m) => (a -> b -> m b) -> b -> [a] -> m b
+-- b is [String]
+-- m is Either Error
+-- a is Digit
+-- foldrM :: (Digit -> [String] -> Either Error [String]) -> [String] -> [Digit] -> Either Error [String]
