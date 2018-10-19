@@ -16,7 +16,7 @@ import Data.Foldable(foldrM)
 type Digit = Char
 type Error = String
 
-digitCharMap :: Map.Map Char [Char]
+digitCharMap :: Map.Map Digit [Char]
 digitCharMap = Map.fromList [('2',"abc"),('3',"def"),('4',"ghi"),('5',"jkl"),('6',"mno"),('7',"pqrs"),('8',"tuv"),('9',"wxyz")]
 
 letterCombinations :: [Digit] -> Either Error [String]
