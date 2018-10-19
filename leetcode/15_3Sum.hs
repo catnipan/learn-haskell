@@ -14,21 +14,14 @@
 --   [-1, -1, 2]
 -- ]
 
+import MyUtil(toUniqTriple)
 import Data.List(sort,nubBy)
 
-type SolutionTriple = (Int, Int, Int)
-
-getAllTriples :: [Int] -> [SolutionTriple]
-getAllTriples nums = do
-  (aIdx,a) <- idxNums
-  (bIdx,b) <- drop aIdx idxNums
-  (_,c) <- drop bIdx idxNums
-  return (a,b,c)
-  where idxNums = zip [1..] nums
+type SolutionTriple = (Int,Int,Int)
 
 isDuplicateTriplets :: SolutionTriple -> SolutionTriple -> Bool
 isDuplicateTriplets (a,b,c) (d,e,f) = sort [a,b,c] == sort [d,e,f]
 
 threeSum :: [Int] -> [SolutionTriple]
-threeSum nums = nubBy isDuplicateTriplets . filter sumEqual0 . getAllTriples $ nums
+threeSum nums = nubBy isDuplicateTriplets . filter sumEqual0 . toUniqTriple $ nums
   where sumEqual0 (x,y,z) = x + y + z == 0
