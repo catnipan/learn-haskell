@@ -11,19 +11,16 @@
 
 type Indice = Int
 
-toPair :: [a] -> [(a,a)]
-toPair xs = do
-  (idx, a) <- idxXs
-  (_, b) <- drop idx idxXs
-  return (a,b)
-  where idxXs = zip [1..] xs
-
 twoSum :: [Int] -> Int -> Maybe (Indice, Indice)
-twoSum xs target = getFirstIndice . filter isRightPair . toPair $ xis
+twoSum xs target = getFirstIndice indicesAnswers
   where
-    xis = zip [0..] xs
-    isRightPair ((_,m),(_,n)) = m + n == target
-    getFirstIndice (((i,_),(j,_)):_) = Just (i,j)
+    idxXs = zip [0..] xs
+    indicesAnswers :: [(Indice, Indice)]
+    indicesAnswers = do
+      (idxA, a) <- idxXs
+      (idxB, b) <- drop idxA idxXs
+      if a + b == target then [(idxA, idxB)] else []
+    getFirstIndice (ij:_) = Just ij
     getFirstIndice [] = Nothing
 
 -- twoSum [2, 7, 11, 15] 9
