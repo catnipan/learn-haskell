@@ -12,8 +12,11 @@
 type Indice = Int
 
 toPair :: [a] -> [(a,a)]
-toPair [] = []
-toPair (x:xs) = [(x,m) | m <- xs] ++ (toPair xs)
+toPair xs = do
+  (idx, a) <- idxXs
+  (_, b) <- drop idx idxXs
+  return (a,b)
+  where idxXs = zip [1..] xs
 
 twoSum :: [Int] -> Int -> Maybe (Indice, Indice)
 twoSum xs target = getFirstIndice . filter isRightPair . toPair $ xis
