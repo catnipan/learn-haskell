@@ -15,7 +15,17 @@
 
 -- removeNthFromEnd :: [a] -> Int -> [a]
 
-import MyUtils.LinkedList
+type Error = String
 
-removeNthFromEnd :: LinkedList a -> Int -> LinkedList a
-removeNthFromEnd headNode nth = undefined
+removeNthFromEnd :: [a] -> Int -> Either Error [a]
+removeNthFromEnd headNode nth = do
+  fNode <- nthNode nth headNode
+  return $ calc headNode fNode
+  where
+    calc :: [a] -> [a] -> [a]
+    calc (b:bs) [] = bs
+    calc (b:bs) (f:fs) = b:(calc bs fs)
+    nthNode :: Int -> [a] -> Either Error [a]
+    nthNode 0 xs = Right xs
+    nthNode _ [] = Left $ "Barkward " ++ show nth ++ "th member not exist"
+    nthNode n (x:xs) = nthNode (n-1) xs
