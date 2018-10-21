@@ -10,7 +10,7 @@
 --   "()()()"
 -- ]
 
-data BrState = BrState { getBrStr :: String, getRestLb :: Int, getRestRb :: Int } deriving (Show)
+data BrState = BrState { getBrStr :: String, getRestLb :: Int, getRestRb :: Int }
 
 generateParenthesis :: Int -> [String]
 generateParenthesis n = map getBrStr $ iterate (>>= genNewBrStates) [(BrState "" n n)] !! (n*2)
