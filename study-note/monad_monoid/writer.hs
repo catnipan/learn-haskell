@@ -157,6 +157,16 @@ finalCountDown x = do
 -- finalCountDown 500000
 -- result `append` [500000]
 
+-- test
+-- foldl1 (++) . map (\x -> [x]) $ [1..500000]
+-- is very slowly
+-- when we use ++ by left associative
+-- (((([1] ++ [2]) ++ [3]) ++ [4]) ++ [5])
+-- but
+-- foldr1 (++) . map (\x -> [x]) $ [1..500000]
+-- is fast
+-- [1] ++ ([2] ++ ([3] ++ ([4] ++ [5])))
+
 finalCountDown' :: Int -> Writer (DiffList String) ()
 finalCountDown' 0 = do
   tell (toDiffList ["0"])
