@@ -13,10 +13,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 mergeKLists :: forall a. (Ord a) => [[a]] -> [a]
-mergeKLists xss =
-  case bubbleXss xss of
-    [] -> []
-    ((sx:srxs):rxss) -> sx:(mergeKLists $ srxs:rxss)
+mergeKLists [] = []
+mergeKLists [[]] = []
+mergeKLists xss = let ~((sx:srxs):rxss) = bubbleXss xss in sx:(mergeKLists (srxs:rxss))
   where
     bubbleXss :: [[a]] -> [[a]]
     bubbleXss xss = foldr bubble [] xss

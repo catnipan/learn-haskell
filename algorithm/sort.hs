@@ -2,10 +2,8 @@
 import Data.List ((\\))
 
 bubbleSort :: forall a. (Ord a) => [a] -> [a]
-bubbleSort xs =
-  case bubbleXs xs of
-    [] -> []
-    (s:rst) -> s:(bubbleSort rst)
+bubbleSort [] = []
+bubbleSort xs = let ~(s:rst) = bubbleXs xs in s:(bubbleSort rst)
   where
     bubbleXs :: [a] -> [a]
     bubbleXs xs = foldr bubble [] xs
