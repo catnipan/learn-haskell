@@ -11,49 +11,49 @@
 -- Output: 4
 -- Explanation: The longest valid parentheses substring is "()()"
 
+import Control.Monad.Writer
 import Data.Foldable(foldrM)
-import Data.List(maximumBy)
-import Data.Function(on)
+
+data Rb = Rb
+instance Show Rb where
+  show Rb = "*"
 
 data BrState = BrState {
-  isRecorded :: Bool,
-  getBrStack :: String,
-  getBrStr :: String,
-  getBrLength :: Int
-} | EmptyBrState deriving (Show)
+  getBrStack :: [Rb], -- there is only ')' in stacks
+  getBrStr :: String
+} deriving (Show)
 
--- foldrM :: (Char -> BrState -> [BrState]) -> BrState -> [Char] ->[BrState]
+data BrRecord = BrRecord { getRecordBrStrs :: [String], getRecordLength :: Int } deriving (Show, Eq)
 
-isValidEndingState :: BrState -> Bool
-isValidEndingState (BrState _ "" _ _) = True
-isValidEndingState EmptyBrState = True
-isValidEndingState _ = False
+instance Semigroup BrRecord where
+  fsR@(BrRecord brs len) <> lsR@(BrRecord brs' len')
+    | len < len' = lsR
+    | len == len' = BrRecord (brs <> brs') len
+    | len > len' = fsR
 
-getBrStr' :: BrState -> String
-getBrStr' EmptyBrState = ""
-getBrStr' brs = getBrStr brs
+instance Monoid BrRecord where
+  mempty = BrRecord [] 0
 
-getBrLength' :: BrState -> Int
-getBrLength' EmptyBrState = 0
-getBrLength' brs =  getBrLength brs
+emptyBrState :: BrState
+emptyBrState = BrState [] ""
 
-record :: BrState -> BrState
-record bs = bs { isRecorded = True }
+toRecord :: BrState -> [BrRecord]
+toRecord (BrState [] brStr) = [BrRecord [brStr] (length brStr)]
+toRecord _ = []
 
-longestValidParentheses :: String -> String
-longestValidParentheses brStr =
-  getBrStr' . getMaxLength . filter isValidEndingState $ allEndingBrStates
+longestValidParentheses :: String -> BrRecord
+longestValidParentheses brStr = snd . runWriter . foldrM foldFunc (return emptyBrState) $ brStr
   where
-    getMaxLength = maximumBy (compare `on` getBrLength')
-    allEndingBrStates = foldrM genNewBrs EmptyBrState brStr
+    foldFunc :: Char -> [BrState] -> Writer BrRecord [BrState]
+    foldFunc nBrChar brSs = do
+      let newBrs = brSs >>= (genNewBrs nBrChar)
+          newRecords = newBrs >>= toRecord
+      if null newRecords 
+        then return $ emptyBrState:newBrs
+        else do
+          tell $ mconcat newRecords
+          return newBrs
     genNewBrs :: Char -> BrState -> [BrState]
-    genNewBrs _ rdBrs@(BrState True _ _ _) = [rdBrs]
-    genNewBrs '(' EmptyBrState = [EmptyBrState]
-    genNewBrs ')' EmptyBrState = [BrState False ")" ")" 1, EmptyBrState]
-    genNewBrs ')' brs@(BrState False brStack brStr brLen) =
-      [BrState False (')':brStack) (')':brStr) (brLen + 1),
-      record brs,
-      EmptyBrState]
-    genNewBrs '(' brs@(BrState False [] _ _) = [record brs, EmptyBrState]
-    genNewBrs '(' (BrState False (')':brStack) brStr brLen) =
-      [BrState False brStack ('(':brStr) (brLen + 1)]
+    genNewBrs '(' (BrState (Rb:brStack) brStr) = [BrState brStack ('(':brStr)]
+    genNewBrs '(' (BrState [] _) = []
+    genNewBrs ')' (BrState brStack brStr) = [BrState (Rb:brStack) (')':brStr)]
