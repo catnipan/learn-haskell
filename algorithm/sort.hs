@@ -1,20 +1,19 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 import Data.List ((\\))
 
-bubbleSort :: (Ord a) => [a] -> [a]
-bubbleSort xs = sort xs []
+bubbleSort :: forall a. (Ord a) => [a] -> [a]
+bubbleSort xs =
+  case bubbleXs xs of
+    [] -> []
+    (s:rst) -> s:(bubbleSort rst)
   where
-    sort :: (Ord a) => [a] -> [a] -> [a]
-    sort [] sortedList = sortedList
-    sort xs sortedList = 
-      let ([newMax], rafterList') = bubble (xs, [])
-          afterList = reverse rafterList'
-      in sort afterList (newMax:sortedList)
-    bubble :: (Ord a) => ([a],[a]) -> ([a],[a])
-    bubble ((x:[]), afterList) = ([x], afterList)
-    bubble ((x:y:xs), afterList) =
-      let (maxv, minv) = if x > y then (x,y) else (y,x)
-      in bubble (maxv:xs, minv:afterList)
-
+    bubbleXs :: [a] -> [a]
+    bubbleXs xs = foldr bubble [] xs
+    bubble :: a -> [a] -> [a]
+    bubble x [] = [x]
+    bubble x' xss@(x:xs)
+      | x < x' = x:x':xs
+      | otherwise = x':xss
 
 selectionSort :: (Ord a) => [a] -> [a]
 selectionSort xs = let (_, maxList) = select (xs, []) in maxList
