@@ -8,8 +8,6 @@
 -- Output: 7 -> 0 -> 8
 -- Explanation: 342 + 465 = 807.
 
-import Data.Function(on)
-
 addTwoNumbers :: [Int] -> [Int] -> [Int]
 addTwoNumbers = add 0
   where
