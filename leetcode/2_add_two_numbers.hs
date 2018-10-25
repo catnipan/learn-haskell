@@ -10,17 +10,15 @@
 
 import Data.Function(on)
 
-type DigitList = [Int]
-
-zipDigitList :: DigitList -> DigitList -> [(Int, Int)]
-zipDigitList xs ys = take ((max `on` length) xs ys) $ zip (xs++repeat 0) (ys++repeat 0)
-
-addTwoNumbers :: DigitList -> DigitList -> DigitList
-addTwoNumbers nl ml = getResult . foldl foldFunction [0] $ zipDigitList nl ml
+addTwoNumbers :: [Int] -> [Int] -> [Int]
+addTwoNumbers = add 0
   where
-    foldFunction (c:res) (n,m) =
-      let sum = c + n + m
-          nr = sum `mod` 10
-          nc = sum `quot` 10
-      in (nc:nr:res)
-    getResult res = reverse $ if head res == 0 then tail res else res
+    add carry (x:xs) (y:ys) =
+      let sum = x + y + carry
+          (nint, ncarry) = (sum `mod` 10, sum `quot` 10)
+      in nint:(add ncarry xs ys)
+    add carry xs@(x:_) [] = add carry xs [0]
+    add carry [] ys@(y:_) = add carry [0] ys
+    add carry [] []
+      | carry == 0 = []
+      | otherwise = [carry]
