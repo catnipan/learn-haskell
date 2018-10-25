@@ -10,37 +10,34 @@
 -- return [0, 1].
 
 import qualified Data.Map as Map
-import Control.Monad.Writer(Writer, writer, runWriter, tell)
 import Control.Applicative((<|>))
 
 type Indice = Int
 type NumIndiceMap = Map.Map Int Indice
 
-isHalfOf :: Int -> Int -> Bool
-x `isHalfOf` y
-  | even y = y `quot` 2 == x
-  | otherwise = False
-
-type FoldWriter = Writer [Int] NumIndiceMap
+data CalcState = Pending NumIndiceMap [Indice] | Solved (Indice,Indice)
 
 twoSum :: [Int] -> Int -> Maybe (Indice, Indice)
 twoSum xs target =
-  foldr (<|>) (getHalfAnswer halfIdxs) $ map toMaybeIndice idxXss
+  case toIndiceMap idxXss (Pending Map.empty []) of
+    Solved (i,j) -> Just (i,j)
+    Pending idxMap _ -> foldr (<|>) Nothing $ map (toMaybeIndice idxMap) idxXss
   where
     idxXss = zip [0..] xs
-    (numIndiceMap, halfIdxs) =
-      runWriter $ foldr addToMap (writer (Map.empty, [])) idxXss
-    getHalfAnswer (i:j:_) = Just (i,j)
-    getHalfAnswer _ = Nothing
-    addToMap :: (Indice, Int) -> FoldWriter -> FoldWriter
-    addToMap (idx, int) ws = do
-      oldMap <- ws
-      if int `isHalfOf` target
-        then do { tell [idx]; return oldMap }
-        else return $ Map.insert int idx oldMap
-    toMaybeIndice :: (Indice, Int) -> Maybe (Indice, Indice)
-    toMaybeIndice (i, v) =
-      case Map.lookup (target - v) numIndiceMap of
+    isHalfTarget :: Int -> Bool
+    isHalfTarget = if even target then (==(target `quot` 2)) else const False    
+    toIndiceMap :: [(Indice,Int)] -> CalcState -> CalcState
+    toIndiceMap [] s = s
+    toIndiceMap _ s@(Solved _) = s
+    toIndiceMap ((idx,val):rest) (Pending map hs) =
+      if isHalfTarget val
+        then case hs of
+              [] -> toIndiceMap rest (Pending map [idx])
+              idx':[] -> (Solved (idx,idx'))
+        else toIndiceMap rest (Pending (Map.insert val idx map) hs)
+    toMaybeIndice :: NumIndiceMap -> (Indice, Int) -> Maybe (Indice, Indice)
+    toMaybeIndice idxMap (i, v) =
+      case Map.lookup (target - v) idxMap of
         Just j -> Just (i, j)
         _ -> Nothing
 
