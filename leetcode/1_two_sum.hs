@@ -10,31 +10,31 @@
 -- return [0, 1].
 
 import qualified Data.Map as Map
+import Data.Foldable(foldlM)
 import Control.Applicative((<|>))
 
 type Indice = Int
 type NumIndiceMap = Map.Map Int Indice
 
-data CalcState = Pending NumIndiceMap [Indice] | Solved (Indice,Indice)
+type PendingState = (NumIndiceMap, [Indice])
+type HalfTargetAnswer = (Indice, Indice)
 
 twoSum :: [Int] -> Int -> Maybe (Indice, Indice)
 twoSum xs target =
-  case toIndiceMap idxXss (Pending Map.empty []) of
-    Solved (i,j) -> Just (i,j)
-    Pending idxMap _ -> foldr (<|>) Nothing $ map (toMaybeIndice idxMap) idxXss
+  case foldlM foldIndiceMap (Map.empty, []) idxXss of
+    Left (i,j) -> Just (i,j)
+    Right (idxMap,_) -> foldr (<|>) Nothing $ map (toMaybeIndice idxMap) idxXss
   where
     idxXss = zip [0..] xs
     isHalfTarget :: Int -> Bool
-    isHalfTarget = if even target then (==(target `quot` 2)) else const False    
-    toIndiceMap :: [(Indice,Int)] -> CalcState -> CalcState
-    toIndiceMap [] s = s
-    toIndiceMap _ s@(Solved _) = s
-    toIndiceMap ((idx,val):rest) (Pending map hs) =
+    isHalfTarget = if even target then (==(target `quot` 2)) else const False
+    foldIndiceMap :: PendingState -> (Indice, Int) -> Either HalfTargetAnswer PendingState
+    foldIndiceMap (map,hs) (idx,val) = do
       if isHalfTarget val
         then case hs of
-              [] -> toIndiceMap rest (Pending map [idx])
-              idx':[] -> (Solved (idx,idx'))
-        else toIndiceMap rest (Pending (Map.insert val idx map) hs)
+          [] -> return $ (map, [idx])
+          idx':[] -> Left (idx,idx')
+        else return $ (Map.insert val idx map, hs)
     toMaybeIndice :: NumIndiceMap -> (Indice, Int) -> Maybe (Indice, Indice)
     toMaybeIndice idxMap (i, v) =
       case Map.lookup (target - v) idxMap of
