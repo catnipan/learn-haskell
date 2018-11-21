@@ -1,7 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 import Data.List
-import Data.Foldable(foldlM)
 
 newtype SP a = SP { getSP :: [[a]] }
 
