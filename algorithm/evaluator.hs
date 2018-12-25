@@ -118,8 +118,11 @@ evaluate str =
 examine :: EvalMonad CalcState -> IO ()
 examine = mapM_ putStrLn . runIdentity . execWriterT . runExceptT
 
-getCalcResult :: EvalMonad CalcState -> Either ErrString CalcState
-getCalcResult = fst . runIdentity . runWriterT . runExceptT
+eval :: String -> Int
+eval str = 
+  case fst . runIdentity . runWriterT . runExceptT $ evaluate str of
+    Right (CalcState (result:[]) ops) -> result
+    _ -> undefined
 
 -- test :: IO ()
 -- test = mapM_ testCase
