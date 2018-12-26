@@ -4,6 +4,7 @@ import Data.List(groupBy)
 import Data.Foldable(foldlM)
 import Data.Function(on)
 import Data.Char(isDigit)
+import Data.List(intercalate)
 import Control.Monad.Writer (Writer, tell, runWriterT, execWriterT)
 import Control.Monad.Except (ExceptT, throwError, runExceptT)
 import Control.Monad.Trans.State.Lazy (StateT)
@@ -53,9 +54,9 @@ parseOp opChar =
     '\0' -> Right EOF
     _ -> Left $ "not valid character: " ++ [opChar]
 
-parseExpression :: String -> [Either ErrString EvalItem]
-parseExpression str = do
-  items <- groupBy ((==) `on` isDigit) str
+parse :: [String] -> [Either ErrString EvalItem]
+parse strs = do
+  items <- strs
   if isDigit $ head items
     then [Right . Number . toNum $ items]
     else map toOptr items
@@ -67,6 +68,12 @@ parseExpression str = do
     toOptr chr = do
       op <- parseOp chr
       return $ Operator op
+
+parseExp :: String -> [Either ErrString EvalItem]
+parseExp str = parse . groupBy ((==) `on` isDigit) $ str
+
+parseRPN :: String -> [Either ErrString EvalItem]
+parseRPN str = parse . words $ str
 
 tellAndThrowError :: ErrString -> EvalMonad a
 tellAndThrowError err = do { tell [err]; throwError err; }
@@ -82,7 +89,7 @@ appendRPN evalItem = modify ((:) evalItem)
 
 evaluate :: String -> EvalMonad CalcState
 evaluate str =
-  foldlM calc' (CalcState [] [EOF]) (parseExpression str ++ [Right (Operator EOF)])
+  foldlM calc' (CalcState [] [EOF]) (parseExp str ++ [Right (Operator EOF)])
   where
     calc' :: CalcState -> Either ErrString EvalItem -> EvalMonad CalcState
     calc' cs item = do { showState cs; calc cs item; }
@@ -111,41 +118,45 @@ evaluate str =
               newNum <- eval nums topOp
               handle newNum restOps newOp
         eval :: [Int] -> Optr -> EvalMonad [Int]
-        eval (x:y:xs) ADD = return $ (x+y):xs
-        eval (x:y:xs) SUB = return $ (y-x):xs
-        eval (x:y:xs) MUL = return $ (x*y):xs
-        eval (x:y:xs) DIV = return $ (y `div` x):xs
-        eval (x:y:xs) POW = return $ (y^x):xs
-        eval (x:xs) FACT = return $ (product [1..x]):xs
-        eval xs EOF = return $ xs
-        eval ns op = tellAndThrowError $ "unexpected error: " ++ show ns ++ show op
+        eval ns op =
+          case evalOp ns op of
+            Right rns -> return rns
+            Left err -> throwError err
 
--- ExceptT (
---   WriterT (
---     Identity (
---       Right (CalcState {nums = [1], ops = []},[]),
---       ["~ CalcState {nums = [], ops = [EOF]}",
---       "push num: 1","~ CalcState {nums = [1], ops = [EOF]}","cancel out Op: EOF"]
---     )
---   )
--- )
+evalOp :: [Int] -> Optr -> Either ErrString [Int]
+evalOp (x:y:xs) ADD = return $ (x+y):xs
+evalOp (x:y:xs) SUB = return $ (y-x):xs
+evalOp (x:y:xs) MUL = return $ (x*y):xs
+evalOp (x:y:xs) DIV = return $ (y `div` x):xs
+evalOp (x:y:xs) POW = return $ (y^x):xs
+evalOp (x:xs) FACT = return $ (product [1..x]):xs
+evalOp ns op = Left $ "unexpected error: " ++ show ns ++ show op
+
+evaluateRPN :: String -> Either ErrString Int
+evaluateRPN str =
+  fmap head $ foldlM calc [] (parseRPN str)
+  where
+    calc :: [Int] -> Either ErrString EvalItem -> Either ErrString [Int]
+    calc _ (Left e) = Left e
+    calc nums (Right (Number n)) = return $ n:nums
+    calc nums (Right (Operator op)) = evalOp nums op
 
 getRPN :: EvalMonad CalcState -> Either ErrString String
 getRPN ec = do
   (_, rpnStack) <- fst . runIdentity . runWriterT . runExceptT $ runStateT ec []
-  return $ foldl genRPNStr "" rpnStack
+  return $ intercalate " " . fmap evalItem2str . reverse $ rpnStack
   where
-    genRPNStr :: String -> EvalItem -> String
-    genRPNStr s (Operator op) = (opToChr op):s
-    genRPNStr s (Number num) = (show num) ++ s
+    evalItem2str :: EvalItem -> String
+    evalItem2str (Number num) = show num
+    evalItem2str (Operator op) =
+      case op of
+        ADD -> "+"
+        SUB -> "-"
+        DIV -> "/"
+        MUL -> "*"
+        POW -> "^"
+        FACT -> "!"
 
-opToChr :: Optr -> Char
-opToChr ADD = '+'
-opToChr SUB = '-'
-opToChr DIV = '/'
-opToChr MUL = '*'
-opToChr POW = '^'
-opToChr FACT = '!'
 -- examine :: EvalMonad CalcState -> IO ()
 -- examine = mapM_ putStrLn . runIdentity . execWriterT . runExceptT
 
