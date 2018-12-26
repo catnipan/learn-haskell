@@ -6,15 +6,17 @@ import Data.Function(on)
 import Data.Char(isDigit)
 import Control.Monad.Writer (Writer, tell, runWriterT, execWriterT)
 import Control.Monad.Except (ExceptT, throwError, runExceptT)
+import Control.Monad.Trans.State.Lazy (StateT)
 
 data CalcState =
   CalcState { nums :: [Int], ops :: [Optr] } deriving (Show)
 
 type ErrString = String
 type EvalString = String
-type EvalMonad = ExceptT ErrString (Writer [EvalString])
-
+data EvalItem = Operator Optr | Number Int deriving Show
 data Optr = EOF | L_P | R_P | ADD | SUB | DIV | MUL | POW | FACT deriving (Show, Eq, Ord)
+type RPN = [EvalItem]
+type EvalMonad = StateT RPN (ExceptT ErrString (Writer [EvalString]))
 
 -- when reading an operator
 -- 1. push to stack
@@ -51,8 +53,6 @@ parseOp opChar =
     '\0' -> Right EOF
     _ -> Left $ "not valid character: " ++ [opChar]
 
-data EvalItem = Operator Optr | Number Int deriving Show
-
 parseExpression :: String -> [Either ErrString EvalItem]
 parseExpression str = do
   items <- groupBy ((==) `on` isDigit) str
@@ -77,6 +77,9 @@ record tag value = tell [tag ++ ": " ++ show value]
 showState :: CalcState -> EvalMonad ()
 showState cs = tell ["~ " ++ show cs]
 
+appendRPN :: EvalItem -> EvalMonad ()
+appendRPN evalItem = modify ((:) evalItem)
+
 evaluate :: String -> EvalMonad CalcState
 evaluate str =
   foldlM calc' (CalcState [] [EOF]) (parseExpression str ++ [Right (Operator EOF)])
@@ -87,6 +90,7 @@ evaluate str =
     calc _ (Left err) = tellAndThrowError err
     calc (CalcState nums ops) (Right (Number n)) = do
       record "push num" n
+      appendRPN (Number n)
       return $ CalcState (n:nums) ops
     calc (CalcState nums ops) (Right (Operator op)) = handle nums ops op
       where
@@ -103,6 +107,7 @@ evaluate str =
             Right POP_AND_CALC -> do
               record "new Op wait" newOp
               record "pop and calculate Op" topOp
+              appendRPN (Operator topOp)
               newNum <- eval nums topOp
               handle newNum restOps newOp
         eval :: [Int] -> Optr -> EvalMonad [Int]
@@ -115,14 +120,40 @@ evaluate str =
         eval xs EOF = return $ xs
         eval ns op = tellAndThrowError $ "unexpected error: " ++ show ns ++ show op
 
-examine :: EvalMonad CalcState -> IO ()
-examine = mapM_ putStrLn . runIdentity . execWriterT . runExceptT
+-- ExceptT (
+--   WriterT (
+--     Identity (
+--       Right (CalcState {nums = [1], ops = []},[]),
+--       ["~ CalcState {nums = [], ops = [EOF]}",
+--       "push num: 1","~ CalcState {nums = [1], ops = [EOF]}","cancel out Op: EOF"]
+--     )
+--   )
+-- )
 
-eval :: String -> Int
-eval str = 
-  case fst . runIdentity . runWriterT . runExceptT $ evaluate str of
-    Right (CalcState (result:[]) ops) -> result
-    _ -> undefined
+getRPN :: EvalMonad CalcState -> Either ErrString String
+getRPN ec = do
+  (_, rpnStack) <- fst . runIdentity . runWriterT . runExceptT $ runStateT ec []
+  return $ foldl genRPNStr "" rpnStack
+  where
+    genRPNStr :: String -> EvalItem -> String
+    genRPNStr s (Operator op) = (opToChr op):s
+    genRPNStr s (Number num) = (show num) ++ s
+
+opToChr :: Optr -> Char
+opToChr ADD = '+'
+opToChr SUB = '-'
+opToChr DIV = '/'
+opToChr MUL = '*'
+opToChr POW = '^'
+opToChr FACT = '!'
+-- examine :: EvalMonad CalcState -> IO ()
+-- examine = mapM_ putStrLn . runIdentity . execWriterT . runExceptT
+
+-- eval :: String -> Int
+-- eval str = 
+--   case fst . runIdentity . runWriterT . runExceptT $ evaluate str of
+--     Right (CalcState (result:[]) ops) -> result
+--     _ -> undefined
 
 -- test :: IO ()
 -- test = mapM_ testCase
