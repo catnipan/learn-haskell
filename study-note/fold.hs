@@ -17,3 +17,15 @@ foldr _ res [] = res
 -- This is why foldr should be used by default in Haskellin order preserve laziness across function composition. However the laziness can only be taken advantage of, if the combining function is a data constructor, which can be lazily deconstructed
 
 -- https://gist.github.com/CMCDragonkai/9f5f75118dda10131764
+
+-- | Monadic fold over the elements of a structure,
+-- associating to the right, i.e. from right to left.
+foldrM :: (Foldable t, Monad m) => (a -> b -> m b) -> b -> t a -> m b
+foldrM f z0 xs = foldl f' return xs z0
+  where f' k x z = f x z >>= k
+
+-- | Monadic fold over the elements of a structure,
+-- associating to the left, i.e. from left to right.
+foldlM :: (Foldable t, Monad m) => (b -> a -> m b) -> b -> t a -> m b
+foldlM f z0 xs = foldr f' return xs z0
+  where f' x k z = f z x >>= k
