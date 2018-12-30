@@ -3,6 +3,10 @@ import qualified Queue as Queue
 
 data Tree a = Node a (Tree a) (Tree a) | EmptyNode deriving (Show)
 
+isEmpty :: Tree a -> Bool
+isEmpty EmptyNode = True
+isEmpty _ = False
+
 tree1 :: Tree Char
 tree1 =
   Node 'i'
@@ -35,7 +39,9 @@ tree1 =
         )
       )
     )
-    
+
+emptyTree :: Tree Char
+emptyTree = EmptyNode
 
 tree2 :: Tree Char
 tree2 =
@@ -104,10 +110,6 @@ travPostR (Node a lc rc) = travPostR lc ++ travPostR rc ++ [a]
 -- does the node get in the stack as a right cousin
 type NeedGoToHLVFL = Bool
 
-isEmpty :: Tree a -> Bool
-isEmpty EmptyNode = True
-isEmpty _ = False
-
 travPostI :: forall a.Tree a -> [a]
 travPostI tree = traverse [(tree, True)]
   where
@@ -129,7 +131,9 @@ gotoHLVFL stack@((node, _):restStack)
 -- level-order traversal (breath first search)
 
 travLevel :: forall a.Tree a -> [a]
-travLevel tree = traverse (Queue.fromList [tree])
+travLevel tree
+  | isEmpty tree = []
+  | otherwise = traverse (Queue.fromList [tree])
   where
     traverse :: Queue.Queue (Tree a) -> [a]
     traverse queue
