@@ -35,6 +35,33 @@ tree1 =
     )
     
 
+tree2 :: Tree Char
+tree2 =
+  Node 'K'
+    (Node 'i'
+      EmptyNode
+      (Node 'h'
+        (Node 'b'
+          EmptyNode
+          (Node 'a' EmptyNode EmptyNode)
+        )
+        (Node 'G'
+          (Node 'e'
+            (Node 'c' EmptyNode EmptyNode)
+            (Node 'D' EmptyNode EmptyNode)
+          )
+          (Node 'F' EmptyNode EmptyNode)
+        )
+      )
+    )
+    (Node 'J' EmptyNode EmptyNode)
+
+tree3 :: Tree Char
+tree3 =
+  Node 'V'
+    (Node 'L' EmptyNode EmptyNode)
+    (Node 'R' EmptyNode EmptyNode)
+
 -- Pre-order traversal
 -- for tree1 is "idcabhfeglkjnmpo"
 
@@ -71,3 +98,28 @@ travInI tree = traverse tree []
 travPostR :: Tree a -> [a]
 travPostR EmptyNode = []
 travPostR (Node a lc rc) = travPostR lc ++ travPostR rc ++ [a]
+
+-- does the node get in the stack as a right cousin
+type NeedGoToHLVFL = Bool
+
+isEmpty :: Tree a -> Bool
+isEmpty EmptyNode = True
+isEmpty _ = False
+
+travPostI :: forall a.Tree a -> [a]
+travPostI tree = traverse [(tree, True)]
+  where
+    traverse :: [(Tree a, NeedGoToHLVFL)] -> [a]
+    traverse [] = []
+    traverse (((Node a _ _),False):restStack) = a:(traverse restStack)
+    traverse ((topNode,True):restStack) = traverse $ gotoHLVFL ((topNode,False):restStack)
+
+gotoHLVFL :: [(Tree a, NeedGoToHLVFL)] -> [(Tree a, NeedGoToHLVFL)]
+gotoHLVFL stack@((node, _):restStack)
+  | isEmpty node = restStack
+  | otherwise = gotoHLVFL $ (addStackFor node) ++ stack
+  where
+    addStackFor :: Tree a -> [(Tree a, NeedGoToHLVFL)]
+    addStackFor (Node _ EmptyNode rc) = [(rc,False)]
+    addStackFor (Node _ lc EmptyNode) = [(lc,False)]
+    addStackFor (Node _ lc rc) = [(lc,False),(rc,True)]
