@@ -1,4 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+import qualified Queue as Queue
+
 data Tree a = Node a (Tree a) (Tree a) | EmptyNode deriving (Show)
 
 tree1 :: Tree Char
@@ -123,3 +125,18 @@ gotoHLVFL stack@((node, _):restStack)
     addStackFor (Node _ EmptyNode rc) = [(rc,False)]
     addStackFor (Node _ lc EmptyNode) = [(lc,False)]
     addStackFor (Node _ lc rc) = [(lc,False),(rc,True)]
+
+-- level-order traversal (breath first search)
+
+travLevel :: forall a.Tree a -> [a]
+travLevel tree = traverse (Queue.fromList [tree])
+  where
+    traverse :: Queue.Queue (Tree a) -> [a]
+    traverse queue
+      | Queue.null queue = []
+      | otherwise =
+          let ~((Node a lc rc), newQueue) = Queue.dequeue queue
+          in a:(traverse . guardEnqueue rc . guardEnqueue lc $ newQueue)
+    guardEnqueue :: Tree a -> Queue.Queue (Tree a) -> Queue.Queue (Tree a)
+    guardEnqueue EmptyNode = id
+    guardEnqueue node = Queue.enqueue node
