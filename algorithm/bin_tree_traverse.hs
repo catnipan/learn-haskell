@@ -107,26 +107,27 @@ travPostR :: Tree a -> [a]
 travPostR EmptyNode = []
 travPostR (Node a lc rc) = travPostR lc ++ travPostR rc ++ [a]
 
--- does the node get in the stack as a right cousin
-type NeedGoToHLVFL = Bool
+data StackInfoItem a = StackInfoItem { node :: Tree a, cousin :: Tree a }
 
 travPostI :: forall a.Tree a -> [a]
-travPostI tree = traverse [(tree, True)]
+travPostI EmptyNode = []
+travPostI tree = traverse $ expandNode tree []
   where
-    traverse :: [(Tree a, NeedGoToHLVFL)] -> [a]
+    traverse :: [StackInfoItem a] -> [a]
     traverse [] = []
-    traverse (((Node a _ _),False):restStack) = a:(traverse restStack)
-    traverse ((topNode,True):restStack) = traverse $ gotoHLVFL ((topNode,False):restStack)
-
-gotoHLVFL :: [(Tree a, NeedGoToHLVFL)] -> [(Tree a, NeedGoToHLVFL)]
-gotoHLVFL stack@((node, _):restStack)
-  | isEmpty node = restStack
-  | otherwise = gotoHLVFL $ (addStackFor node) ++ stack
-  where
-    addStackFor :: Tree a -> [(Tree a, NeedGoToHLVFL)]
-    addStackFor (Node _ EmptyNode rc) = [(rc,False)]
-    addStackFor (Node _ lc EmptyNode) = [(lc,False)]
-    addStackFor (Node _ lc rc) = [(lc,False),(rc,True)]
+    traverse ((StackInfoItem (Node a _ _) cousin):rstack) =
+      a:(traverse $ (expandMaybe cousin) rstack)
+      where
+        expandMaybe EmptyNode = id
+        expandMaybe cousin = expandNode cousin
+    expandNode :: Tree a -> [StackInfoItem a] -> [StackInfoItem a]
+    expandNode node stack = expand $ (StackInfoItem node EmptyNode):stack
+    expand :: [StackInfoItem a] -> [StackInfoItem a]
+    expand stack@((StackInfoItem (Node _ lc rc) _):_) =
+      case (lc, rc) of
+        (EmptyNode, EmptyNode) -> stack
+        (EmptyNode, rc) -> expand $ (StackInfoItem rc EmptyNode):stack
+        (lc, rc) -> expand $ (StackInfoItem lc rc):stack
 
 -- level-order traversal (breath first search)
 
