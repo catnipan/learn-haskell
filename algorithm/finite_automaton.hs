@@ -11,7 +11,7 @@ data FiniteAutomaton s = FiniteAutomaton {
   isAccept :: s -> Bool
 }
 
-runFA :: forall s.(Eq s) => FiniteAutomaton s -> String -> Bool
+runFA :: forall s.FiniteAutomaton s -> String -> Bool
 runFA (FiniteAutomaton tf start isa) string = run start string
   where
     run :: s -> String -> Bool
@@ -95,7 +95,7 @@ fa3 = FiniteAutomaton {
 
 -- fa1 `union` fa2 is a new fa recognizing L(fa1) ∪ L(fa2) 
 -- assuming that the two finite automaton have the same alphabet
-union :: forall sa sb.(Eq sa, Eq sb) => FiniteAutomaton sa -> FiniteAutomaton sb -> FiniteAutomaton (sa, sb)
+union :: forall sa sb. FiniteAutomaton sa -> FiniteAutomaton sb -> FiniteAutomaton (sa, sb)
 (FiniteAutomaton tfa sSa isA) `union` (FiniteAutomaton tfb sSb isB) =
   FiniteAutomaton {
     transitionFunction = tf,
