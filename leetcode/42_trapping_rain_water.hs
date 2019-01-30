@@ -12,6 +12,7 @@ type Height = Int
 type WaterSize = Int
 
 trap :: [Height] -> WaterSize
+trap [] = 0
 trap xs = sum $ map getTrap $ zip3 (accFromLeft xs) (accFromRight xs) xs
   where
     accFromLeft :: [Height] -> [Height]
