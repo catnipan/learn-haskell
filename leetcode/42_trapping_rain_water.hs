@@ -8,26 +8,19 @@
 -- Input: [0,1,0,2,1,0,1,3,2,1,2,1]
 -- Output: 6
 
-import Data.List(sortOn)
-import Data.Function(on)
-
 type Height = Int
-type Index = Int
 type WaterSize = Int
 
-headOrZero :: [Int] -> Int
-headOrZero [] = 0
-headOrZero (x:xs) = x
-
 trap :: [Height] -> WaterSize
-trap xs = sum $ map getWaterSize hiPairs
+trap [] = 0
+trap xs = sum $ map getTrap $ zip3 (accFromLeft xs) (accFromRight xs) xs
   where
-    getWaterSize :: (Height, Index) -> WaterSize
-    getWaterSize (currHeight, currIdx) =
-      let getLargest comp =
-            headOrZero . map ((max 0) . (subtract currHeight) . fst) . filter (comp currIdx . snd) $ sortedHeightIdx
-      in (min `on` getLargest) (<) (>)
-    hiPairs :: [(Height, Index)]
-    hiPairs = zip xs [0..]
-    sortedHeightIdx :: [(Height, Index)]
-    sortedHeightIdx = reverse . sortOn fst $ hiPairs
+    accFromLeft :: [Height] -> [Height]
+    accFromLeft (x:xs) = reverse $ foldl accMax [x] xs
+    accFromRight :: [Height] -> [Height]
+    accFromRight xs = foldl accMax [x] $ xs'
+      where (x:xs') = reverse xs
+    accMax :: [Height] -> Height -> [Height]
+    accMax mx c = (max (head mx) c):mx
+    getTrap :: (Height, Height, Height) -> Height
+    getTrap (l, r, h) = (min l r) - h
